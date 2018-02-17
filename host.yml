@@ -1,0 +1,29 @@
+all:
+  children:
+    nsx:
+      hosts:
+        192.168.64.176:
+        192.168.64.177:
+        192.168.64.178:
+        192.168.64.179:
+        192.168.64.180:
+        192.168.64.181:
+      vars:
+        ansible_ssh_user: admin
+        ansible_ssh_pass: Nicira123$
+
+    k8master:
+      hosts:
+        192.168.105.151:
+      vars:
+        ansible_ssh_user: root
+        ansible_ssh_pass: nicira123
+        ansible_sudo: yes
+
+    k8node:
+      hosts:
+        192.168.105.152:
+        192.168.105.153:
+      vars:
+        ansible_ssh_user: root
+        ansible_ssh_pass: nicira123  
