@@ -1,0 +1,11 @@
+---
+- hosts: 127.0.0.1
+  
+  tasks:
+  - name: build nsx configuration for basic k8s intergation 
+    command: python ./python/k8stopo.py
+    register: output 
+    failed_when: "'the return code is' in output.stdout"
+
+  - debug:
+      var: output

@@ -1,0 +1,171 @@
+---
+- name: deployment nsx manager 
+  command: ovftool 
+    --X:injectOvfEnv
+    --X:logFile=ovftool.log 
+    --allowExtraConfig
+    --acceptAllEulas 
+    --noSSLVerify
+    --powerOn
+    --deploymentOption={{common.size}}
+    --datastore={{vc.ds}}
+    --network={{common.net0}}
+    --name={{nsxmgr.name}}  
+    --prop:nsx_hostname={{nsxmgr.name}}
+    --prop:nsx_ip_0={{nsxmgr.ip}}  
+    --prop:nsx_netmask_0={{common.netmask}}
+    --prop:nsx_gateway_0={{common.gw}}
+    --prop:nsx_dns1_0={{common.dns}}
+    --prop:nsx_domain_0={{common.domain}}
+    --prop:nsx_ntp_0={{common.ntp}}
+    --prop:nsx_passwd_0={{common.password}}
+    --prop:nsx_cli_passwd_0={{common.password}}
+    --prop:nsx_isSSHEnabled=True 
+    --prop:nsx_allowSSHRootLogin=True
+    {{image.manager}}   
+    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.cluster}}
+  tags:
+    - mgr 
+
+- name: deployment controller-1
+  command: ovftool
+    --X:injectOvfEnv
+    --X:logFile=ovftool.log
+    --allowExtraConfig
+    --acceptAllEulas
+    --noSSLVerify
+    --powerOn
+    --datastore={{vc.ds}}
+    --network={{common.net0}}
+    --name={{nsxctr1.name}}  
+    --prop:nsx_hostname={{nsxctr1.name}} 
+    --prop:nsx_ip_0={{nsxctr1.ip}}
+    --prop:nsx_netmask_0={{common.netmask}}
+    --prop:nsx_gateway_0={{common.gw}}
+    --prop:nsx_dns1_0={{common.dns}}
+    --prop:nsx_domain_0={{common.domain}}
+    --prop:nsx_ntp_0={{common.ntp}}
+    --prop:nsx_passwd_0={{common.password}}
+    --prop:nsx_cli_passwd_0={{common.password}}
+    --prop:nsx_isSSHEnabled=True
+    --prop:nsx_allowSSHRootLogin=True
+    {{image.controller}} 
+    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.cluster}}
+  tags:
+    - ctr1
+
+- name: deployment controller-2
+  command: ovftool
+    --X:injectOvfEnv
+    --X:logFile=ovftool.log
+    --allowExtraConfig
+    --acceptAllEulas
+    --noSSLVerify
+    --powerOn
+    --datastore={{vc.ds}}
+    --network={{common.net0}}
+    --name={{nsxctr2.name}}
+    --prop:nsx_hostname={{nsxctr2.name}}
+    --prop:nsx_ip_0={{nsxctr2.ip}}
+    --prop:nsx_netmask_0={{common.netmask}}
+    --prop:nsx_gateway_0={{common.gw}}
+    --prop:nsx_dns1_0={{common.dns}}                                     
+    --prop:nsx_domain_0={{common.domain}}                                 
+    --prop:nsx_ntp_0={{common.ntp}}                                      
+    --prop:nsx_passwd_0={{common.password}}                                
+    --prop:nsx_cli_passwd_0={{common.password}}                              
+    --prop:nsx_isSSHEnabled=True                                        
+    --prop:nsx_allowSSHRootLogin=True                                    
+    {{image.controller}}                                            
+    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.cluster}} 
+  tags:
+    - ctr2
+
+- name: deployment controller-3
+  command: ovftool
+    --X:injectOvfEnv
+    --X:logFile=ovftool.log
+    --allowExtraConfig
+    --acceptAllEulas
+    --noSSLVerify
+    --powerOn
+    --datastore={{vc.ds}}
+    --network={{common.net0}}
+    --name={{nsxctr3.name}}
+    --prop:nsx_hostname={{nsxctr3.name}}
+    --prop:nsx_ip_0={{nsxctr3.ip}}
+    --prop:nsx_netmask_0={{common.netmask}}
+    --prop:nsx_gateway_0={{common.gw}}
+    --prop:nsx_dns1_0={{common.dns}}                                     
+    --prop:nsx_domain_0={{common.domain}}                                  
+    --prop:nsx_ntp_0={{common.ntp}}                                     
+    --prop:nsx_passwd_0={{common.password}}                                
+    --prop:nsx_cli_passwd_0={{common.password}}                              
+    --prop:nsx_isSSHEnabled=True                                        
+    --prop:nsx_allowSSHRootLogin=True                                    
+    {{image.controller}}                                            
+    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.cluster}} 
+  tags:
+    - ctr3
+
+- name: deployment edge-1                                         
+  command: ovftool                                                
+    --X:injectOvfEnv                                              
+    --X:logFile=ovftool.log                                           
+    --allowExtraConfig                                            
+    --acceptAllEulas                                              
+    --noSSLVerify                                                 
+    --powerOn                                                 
+    --deploymentOption={{common.size}}                                     
+    --datastore={{vc.ds}}                                             
+    --name={{nsxedge1.name}}
+    --net:"Network 0"={{common.net0}}
+    --net:"Network 1"={{common.net1}} 
+    --net:"Network 2"={{common.net2}} 
+    --net:"Network 3"={{common.net3}}          
+    --prop:nsx_hostname={{nsxedge1.name}}                                  
+    --prop:nsx_ip_0={{nsxedge1.ip}}                                     
+    --prop:nsx_netmask_0={{common.netmask}}                                
+    --prop:nsx_gateway_0={{common.gw}}                                    
+    --prop:nsx_dns1_0={{common.dns}}                                     
+    --prop:nsx_domain_0={{common.domain}}                                  
+    --prop:nsx_ntp_0={{common.ntp}}                                      
+    --prop:nsx_passwd_0={{common.password}}                                
+    --prop:nsx_cli_passwd_0={{common.password}}                              
+    --prop:nsx_isSSHEnabled=True                                        
+    --prop:nsx_allowSSHRootLogin=True                                     
+    {{image.edge}}                                            
+    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.cluster}} 
+  tags:
+    - edge1
+
+- name: deployment edge-2
+  command: ovftool
+    --X:injectOvfEnv
+    --X:logFile=ovftool.log
+    --allowExtraConfig
+    --acceptAllEulas
+    --noSSLVerify
+    --powerOn
+    --deploymentOption={{common.size}}
+    --datastore={{vc.ds}}
+    --name={{nsxedge2.name}}
+    --net:"Network 0"={{common.net0}}
+    --net:"Network 1"={{common.net1}} 
+    --net:"Network 2"={{common.net2}}
+    --net:"Network 3"={{common.net3}}
+    --prop:nsx_hostname={{nsxedge2.name}}                                  
+    --prop:nsx_ip_0={{nsxedge2.ip}}                                     
+    --prop:nsx_netmask_0={{common.netmask}}                                
+    --prop:nsx_gateway_0={{common.gw}}                                    
+    --prop:nsx_dns1_0={{common.dns}}                                     
+    --prop:nsx_domain_0={{common.domain}}                                  
+    --prop:nsx_ntp_0={{common.ntp}}                                      
+    --prop:nsx_passwd_0={{common.password}}                                
+    --prop:nsx_cli_passwd_0={{common.password}}                              
+    --prop:nsx_isSSHEnabled=True                                         
+    --prop:nsx_allowSSHRootLogin=True                                    
+    {{image.edge}}                                                 
+    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.cluster}}  
+  tags:
+    - edge2

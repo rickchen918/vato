@@ -1,0 +1,151 @@
+- hosts: k8master
+  vars_files: 
+    - ./answer.yml
+
+  tasks:
+# verify kubelet service is off, if it is off, perform kubeadm init 
+  - shell: ps -ef 
+    register: k8cluster
+
+  - name: init k8s cluster and copy message to /tmp/token
+    raw: kubeadm init >> /tmp/token
+    when: k8cluster.stdout.find("kubelet") == -1
+
+# token registration is the command for k8s million node join
+  - shell: ls /tmp
+    register: token_file
+
+  - name: process init message to retrieve command
+    shell: cat /tmp/token |grep "kubeadm join"
+    register: token   #get million node join command
+    when: token_file.stdout.find("token") != -1
+
+# execute the command what kubeadm mention
+  - shell: "{{item}}"
+    with_items:
+      - cp /etc/kubernetes/admin.conf $HOME/
+      - chown $(id -u):$(id -g) $HOME/admin.conf
+      - export KUBECONFIG=$HOME/admin.conf
+
+# verify bashrc includes "export KUBECONFIG=$HOME/admin.conf"
+  - shell: cat ~/.bashrc
+    register: inbashrc
+
+  - name: update shell privilige into bashrc 
+    shell: echo 'export KUBECONFIG=$HOME/admin.conf' >> ~/.bashrc
+    when: inbashrc.stdout.find("export KUBECONFIG=") == -1
+
+# fetch info of kubeadm join from k8master to ansible control node
+  - name: fetch tmp file from k8master to ansible control node /tmp folder
+    fetch: 
+      src: /tmp/token
+      dest: /tmp/token
+      flat: yes
+
+# the kunectl execute needs to refer admin.conf then it is able to pass authotization 
+# within ssh session, /etc/kubernetes/admin.conf is not loaded by default,so we need to specify and execute command
+
+# verify clusteradmin role existing or not 
+  - raw: export KUBECONFIG=~/admin.conf && kubectl get clusterrolebindings >> /tmp/rolebinding 
+
+  - shell: cat /tmp/rolebinding 
+    register: role
+
+  - name: create cluster role binding if it is not existed
+    raw: export KUBECONFIG=~/admin.conf && kubectl create clusterrolebinding default:default:clusteradmin --clusterrole cluster-admin --serviceaccount default:default
+    when: role.stdout.find("clusteradmin") == -1
+
+# load nsx ncp docker image 
+  - shell: docker images 
+    register: docker_image
+
+  - name: load nsx docker image 
+    command: docker load -i "{{ovspkg.docker}}" 
+    when: docker_image.stdout.find("nsx-ncp")
+
+# copy nsx node agent and ncp yml to k8 master
+  - name: update nsx node agent to k8 master
+    template: src=./template/nsx-node-agent-ds.yml dest=/tmp
+
+  - name: update ncp.rc to k8 master
+    template: src=./template/ncp-rc.yml dest=/tmp
+                                                  
+# process k8 nodes
+
+- hosts: k8node
+  vars_files:
+    - ./answer.yml
+
+  tasks:
+  - name: copy k8s node join info to k8 milion node
+    copy:
+      src: /tmp/token
+      dest: /tmp/token
+
+  - name: retrive token 
+    raw: cat /tmp/token | grep "kubeadm join"
+    register: token
+
+  - debug:
+      var: token
+
+  - shell: ps -ef 
+    register: kubelet
+
+  - name: load nsx docker image
+    command: docker load -i "{{ovspkg.docker}}"
+
+  - name: register to k8s master 
+    raw: "{{token.stdout_lines[0]}}"
+    register: join
+    args:
+      executable: /bin/bash
+    when: kubelet.stdout.find("kubelet") == -1
+
+  - debug: 
+      var: join
+
+- hosts: k8master
+  vars_files:                                                                                                                
+    - ./answer.yml                                                                                                           
+                                                                                                                             
+  tasks: 
+
+# apply nsx ndoe agent on k8 master 
+  - name: verify nsx node agent running 
+    raw:  export KUBECONFIG=~/admin.conf && kubectl get pods --all-namespaces
+    register: nsx_agent
+
+  - name: apply nsx node agent on k8 master
+    raw: export KUBECONFIG=~/admin.conf && kubectl apply -f /tmp/nsx-node-agent-ds.yml
+    when: nsx_agent.stdout.find("nsx-node-agent-") == -1
+
+  - name: apply nsx ncp on k8master 
+    raw: export KUBECONFIG=~/admin.conf && kubectl create -f /tmp/ncp-rc.yml
+    when: nsx_agent.stdout.find("nsx-ncp-") == -1
+
+# verify kube-dns service, if it is not on right status, delete kube-dns to restart 
+  - name: get dns service 
+    raw: export KUBECONFIG=~/admin.conf && kubectl get pods --all-namespaces |grep "kube-dns"
+    register: dns
+  
+  - copy: 
+      content: "{{dns}}" 
+      dest: /tmp/dns_info
+
+  - raw: cat /tmp/dns_info |awk '{print $3}'
+    register: dns_pod
+
+  - raw: cat /tmp/dns_info |awk '{print $5}'
+    register: dns_status
+
+  - debug: 
+      var: dns_pod
+
+  - pause: 
+      minutes: 3
+
+  - name: restart kube-dns service 
+    raw: export KUBECONFIG=~/admin.conf && kubectl delete pod --namespace=kube-system ""{{dns_pod.stdout_lines[0]}}""
+    when: dns_status.stdout.find("Running") == -1
+

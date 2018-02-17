@@ -1,0 +1,10 @@
+---
+- name: remove existing hostkey storing 
+  file: path=~/.ssh/known_hosts state=absent
+
+- name: get nsx manager thumbprint 
+  raw: get certificate api thumbprint 
+  register: mgr_key
+  delegate_to: "{{nsxmgr.ip}}"
+
+

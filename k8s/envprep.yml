@@ -1,0 +1,111 @@
+---
+- hosts: all
+  vars_files: 
+    - ./answer.yml
+
+  tasks:
+  - name: check apt key existing on packages.cloud.google.com
+    command: apt-key list 
+    register: key_google
+  - name: verify key existing
+    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add 
+    when: key_google.stdout.find("Google Cloud Packages Automatic Signing Key") == -1
+  - name: check kubernetes package list 
+    command: more /etc/apt/sources.list.d/kubernetes.list 
+    register: apt_key
+  - name: update kubernetes package list 
+    shell: echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+    when: apt_key.stdout.find("deb http://apt.kubernetes.io/ kubernetes-xenial main") == -1
+  - name: update apt package list 
+    apt:
+      update_cache: yes
+  - name: install k8s related packages 
+    apt:  
+      name:
+      - docker.io
+      - kubelet=1.6.7-00
+      - kubeadm=1.6.7-00
+      - kubectl=1.6.7-00
+      - kubernetes-cni=0.5.1-00
+      - python2.7
+      - python-pip
+      - python-dev
+      - python-six 
+      - build-essential
+      - dkms
+      - unzip
+      state: present
+  - name: check the container package existing 
+    shell: ls /tmp
+    register: file_present
+
+# unarchive support to copy local file to extract in remote with remote_src specification
+# with when description, the jinja statement shows warning within when condition, so i do use 
+# prefix of unarchive folder to do check point
+  - name: unarchive the nsx container file 
+    unarchive:
+      src: ./packages/nsx-container-2.0.0.0.0.6500154.zip
+      dest: /tmp
+    when: file_present.stdout.find("nsx-container") == -1
+
+  - name: check openvswitch status 
+    shell: dpkg -l |grep open
+    register: openvswitch
+
+  - name: install nsx openvswitch packages 
+    apt: deb={{item}}
+    with_items:
+      - "{{ovspkg.common}}"
+      - "{{ovspkg.switch}}"
+      - "{{ovspkg.dkms}}"
+    when: 
+      - openvswitch.stdout.find('openvswitch-common') == -1
+      - openvswitch.stdout.find('openvswitch-switch') == -1
+      - openvswitch.stdout.find('openvswitch-datapath-dkms') == -1
+
+  - name: reload openvswitch kernel module 
+    raw: service openvswitch-switch force-reload-kmod
+
+  - name: check ovs bridge configured
+    command: ovs-vsctl show 
+    register: ovs_show
+
+  - name: configure ovs if configuration is not
+    command: "ovs-vsctl {{item}}"
+    with_items: 
+      - add-br br-int 
+      - set-fail-mode br-int standalone
+      - add-port br-int "{{ovsint.port}}"
+      - set Interface "{{ovsint.port}}" ofport=1
+    when:
+      - ovs_show.stdout.find("standalone") == -1
+      - ovs_show.stdout.find("ens") == -1
+
+  - name: check network interface configuration 
+    command: cat /etc/network/interfaces
+    register: int_file
+
+  - name: configure /etc/network/interface 
+    shell: "echo {{item}} >> /etc/network/interfaces"
+    with_items:
+      - "# the ovs interface for nsx bridge"
+      - auto "{{ovsint.port}}"
+      - iface "{{ovsint.port}}" inet manual
+      - up ip link set "{{ovsint.port}}" up
+    when: int_file.stdout.find("{{ovsint.port}}") == -1
+
+  - name: check ovs interface stats 
+    shell: ip link 
+    register: ovs_link
+
+  - name: bring "{{ovsint.port}}" up 
+    shell: ifup "{{ovsint.port}}"
+    when: ovs_link.stdout.find("ovs-system state UP") == -1
+
+  - name: check nsx cni plugin install
+    shell: dpkg -l |grep "cni"
+    register: nsx_cni
+
+  - name: install nsx cni package 
+    command: "dpkg -i {{ovspkg.cni}}"
+    when: nsx_cni.stdout.find("nsx-cni") == -1
