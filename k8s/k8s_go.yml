@@ -1,0 +1,37 @@
+---
+- hosts: 127.0.0.1
+  vars_files: 
+    - ../answer.yml
+  roles:
+    - { role: k8app_deploy }
+
+- hosts: k8master
+  vars_files:
+    - ../answer.yml
+  roles:
+    - { role: linuxprep }
+
+- hosts: k8node
+  vars_files:
+    - ../answer.yml
+  roles:
+    - { role: linuxprep }
+
+- hosts: k8master
+  vars_files:
+    - ../answer.yml
+  roles:
+    - { role: k8config-master, tags: "masterconfig" }
+
+- hosts: k8node
+  vars_files:
+    - ../answer.yml
+  roles:
+    - { role: k8config-node, tags: "nodeconfig" }
+
+
+- hosts: k8master
+  vars_files:
+    - ../answer.yml
+  roles:
+    - { role: k8config-masterncp, tags: "masterncp" }

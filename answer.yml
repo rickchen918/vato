@@ -1,0 +1,134 @@
+---
+# this yaml is var info of nsx-t envirnment deployment 
+# the deployment script retrieve variable from definition 
+vc:
+  server: vc.rkc.local
+  user: administrator@rkc.local
+  pass: Nicira123$
+  dc: Home
+  cluster: cluster
+  ds: nsx_lab
+
+image: 
+  manager: ~/project/ventu/packages/dgo/nsx-unified-appliance-2.1.0.0.0.7395503.ova
+  controller: ~/project/ventu/packages/dgo/nsx-controller-2.1.0.0.0.7395493.ova
+  edge: ~/project/ventu/packages/dgo/nsx-edge-2.1.0.0.0.7395502.ova
+
+# to provide easy way to fill common variable of deployment 
+common:
+  netmask: 255.255.255.0
+  gw: 192.168.64.1
+  dns: 192.168.0.96
+  ntp: 192.168.0.58
+  net0: 64-0
+  net1: 65-0
+  net2: 70-0
+  net3: 70-0
+  domain: rkc.local
+  disk_mode: thin
+  user: admin
+  password: Nicira123$
+  size: medium 
+  secret: Nicira123$
+
+# tags for container integration info
+tags:
+  scope: ncp/cluster
+  tag: k8cluster
+
+nsxmgr:
+  name: nsxmgr
+  ip: 192.168.64.176
+#  if the below information is replicable, i would prefer to use common section to simplify configuration required
+#  unless you need specify defail variable of each deployment, my example is to use common section
+#  netmask: 255.255.255.0
+#  gw: 192.168.64.1
+#  dns: 192.168.0.96
+#  domain: rkc.local
+#  ntp: 192.168.0.58
+#  net0: 64-0 # management network 
+#  disk-mode: thin
+#  user: admin # appliance account
+#  pass: Nicira123$
+#  cli_pass: Nicira123$
+#  size: small 
+
+nsxctr1:
+  name: nsxctr1
+  ip: 192.168.64.177
+
+nsxctr2:
+  name: nsxctr2
+  ip: 192.168.64.178
+
+nsxctr3:
+  name: nsxctr3
+  ip: 192.168.64.179
+
+nsxedge1:
+  name: nsxedge1
+  ip: 192.168.64.180
+
+nsxedge2:
+  name: nsxedge2
+  ip: 192.168.64.181
+
+
+######################k8s section######################
+#                                                     #
+#      You only need to modify below var if you need  #
+#      to deploy k8s by vato                          #
+#######################################################
+k8image:
+  template: ~/project/vato/docker-temp4.ova
+
+k8common:
+  netmask: 255.255.255.0
+  gw: 192.168.64.1
+  dns: 192.168.0.96
+  ntp: 192.168.0.58
+  net0: 64-0
+  net1: 65-0
+
+k8master:
+  name: k8master
+  ip: 192.168.64.201
+
+k8node1:
+  name: k8node1
+  ip: 192.168.64.202
+
+k8node2:
+  name: k8node2
+  ip: 192.168.64.203  
+
+# location of nsx-t package install on remote k8 nodes
+ovspkg:
+  lib: /tmp/nsx-container-2.1.0.0.0.7371408/OpenvSwitch/xenial_amd64/libopenvswitch_2.8.1.7345072-1_amd64.deb 
+  common: /tmp/nsx-container-2.1.0.0.0.7371408/OpenvSwitch/xenial_amd64/openvswitch-common_2.8.1.7345072-1_amd64.deb
+  switch: /tmp/nsx-container-2.1.0.0.0.7371408/OpenvSwitch/xenial_amd64/openvswitch-switch_2.8.1.7345072-1_amd64.deb
+  dkms: /tmp/nsx-container-2.1.0.0.0.7371408/OpenvSwitch/xenial_amd64/openvswitch-datapath-dkms_2.8.1.7345072-1_all.deb
+  cni: /tmp/nsx-container-2.1.0.0.0.7371408/Kubernetes/ubuntu_amd64/nsx-cni_2.1.0.0.0.7371408_amd64.deb
+  folder: nsx-container-2.0.0.0.0.6500154
+  docker: /tmp/nsx-container-2.1.0.0.0.7371408/Kubernetes/nsx-ncp-ubuntu-2.1.0.0.0.7371408.tar
+  zip: ./packages/nsx-container-2.1.0.0.0.7371408.zip
+
+# ovs physical interface for bridge
+ovsint:
+  port: ens192
+
+# k8s info 
+k8s: 
+# k8s node agent 
+  cluster : k8cluster 
+  api_server : 192.168.105.151
+  api_port : 6443
+  image : registry.local/ob-6500154/nsx-ncp
+# k8s rpc-rc
+  ingress : nat
+  nsx_mgr : 192.168.64.186
+  nsx_user: admin
+  nsx_pass: Nicira123$
+  insecure: True
+  subnet_prefix: 27 
+    

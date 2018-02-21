@@ -1,0 +1,29 @@
+---
+  - name: copy k8s node join info to k8 milion node
+    copy:
+      src: /tmp/token
+      dest: /tmp/token
+
+  - name: retrive token 
+    raw: cat /tmp/token | grep "kubeadm join"
+    register: token
+
+  - debug:
+      var: token
+
+  - shell: ps -ef 
+    register: kubelet
+
+  - name: load nsx docker image
+    command: docker load -i "{{ovspkg.docker}}"
+
+  - name: register to k8s master 
+    raw: "{{token.stdout_lines[0]}}"
+    register: join
+    args:
+      executable: /bin/bash
+    when: kubelet.stdout.find("kubelet") == -1
+
+  - debug: 
+      var: join
+

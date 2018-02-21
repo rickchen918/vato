@@ -1,0 +1,57 @@
+---
+- name: deployment k8s master
+  command: ovftool 
+    --X:injectOvfEnv
+    --X:logFile=ovftool.log 
+    --allowExtraConfig
+    --acceptAllEulas 
+    --noSSLVerify
+    --powerOn
+    --datastore={{vc.ds}}
+    --network={{common.net0}}
+    --name={{k8master.name}}
+    --prop:hostname={{k8master.name}}
+    --prop:ip={{k8master.ip}}
+    --prop:netmask={{k8common.netmask}}
+    --prop:gateway={{k8common.gw}}
+    --prop:dns={{k8common.dns}}
+    {{k8image.template}}   
+    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.cluster}}
+
+- name: deployment container host1
+  command: ovftool
+    --X:injectOvfEnv
+    --X:logFile=ovftool.log
+    --allowExtraConfig
+    --acceptAllEulas
+    --noSSLVerify
+    --powerOn
+    --datastore={{vc.ds}}
+    --network={{common.net0}}
+    --name={{k8node1.name}}
+    --prop:hostname={{k8node1.name}}
+    --prop:ip={{k8node1.ip}}
+    --prop:netmask={{k8common.netmask}}
+    --prop:gateway={{k8common.gw}}
+    --prop:dns={{k8common.dns}}
+    {{k8image.template}}
+    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.cluster}}
+
+- name: deployment container host2
+  command: ovftool
+    --X:injectOvfEnv
+    --X:logFile=ovftool.log
+    --allowExtraConfig
+    --acceptAllEulas
+    --noSSLVerify
+    --powerOn
+    --datastore={{vc.ds}}
+    --network={{common.net0}}
+    --name={{k8node2.name}}
+    --prop:hostname={{k8node2.name}}
+    --prop:ip={{k8node2.ip}}
+    --prop:netmask={{k8common.netmask}}
+    --prop:gateway={{k8common.gw}}
+    --prop:dns={{k8common.dns}}
+    {{k8image.template}}
+    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.cluster}}

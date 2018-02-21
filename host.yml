@@ -14,7 +14,7 @@ all:
 
     k8master:
       hosts:
-        192.168.105.151:
+        192.168.64.201:
       vars:
         ansible_ssh_user: root
         ansible_ssh_pass: nicira123
@@ -22,8 +22,8 @@ all:
 
     k8node:
       hosts:
-        192.168.105.152:
-        192.168.105.153:
+        192.168.64.202:
+        192.168.64.203:
       vars:
         ansible_ssh_user: root
         ansible_ssh_pass: nicira123  

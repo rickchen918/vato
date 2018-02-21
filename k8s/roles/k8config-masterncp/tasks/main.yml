@@ -1,0 +1,38 @@
+---
+# apply nsx ndoe agent on k8 master                                                                      
+  - name: verify nsx node agent running                                                                  
+    raw:  export KUBECONFIG=~/admin.conf && kubectl get pods --all-namespaces                            
+    register: nsx_agent                                                                                  
+                                                                                                         
+  - name: apply nsx node agent on k8 master                                                              
+    raw: export KUBECONFIG=~/admin.conf && kubectl apply -f /tmp/nsx-node-agent-ds.yml                   
+    when: nsx_agent.stdout.find("nsx-node-agent-") == -1                                                 
+                                                                                                         
+  - name: apply nsx ncp on k8master                                                                      
+    raw: export KUBECONFIG=~/admin.conf && kubectl create -f /tmp/ncp-rc.yml                             
+    when: nsx_agent.stdout.find("nsx-ncp-") == -1                                                        
+                                                                                                         
+# verify kube-dns service, if it is not on right status, delete kube-dns to restart                      
+  - name: get dns service                                                                                
+    raw: export KUBECONFIG=~/admin.conf && kubectl get pods --all-namespaces |grep "kube-dns"            
+    register: dns                                                                                        
+                                                                                                         
+  - copy:                                                                                                
+      content: "{{dns}}"                                                                                 
+      dest: /tmp/dns_info                                                                                
+                                                                                                         
+  - raw: cat /tmp/dns_info |awk '{print $3}'                                                             
+    register: dns_pod                                                                                    
+                                                                                                         
+  - raw: cat /tmp/dns_info |awk '{print $5}'                                                             
+    register: dns_status                                                                                 
+                                                                                                         
+  - debug:                                                                                               
+      var: dns_pod                                                                                       
+                                                                                                         
+  - pause:                                                                                               
+      minutes: 3                                                                                         
+                                                                                                         
+  - name: restart kube-dns service                                                                       
+    raw: export KUBECONFIG=~/admin.conf && kubectl delete pod --namespace=kube-system ""{{dns_pod.stdout_lines[0]}}""  
+    when: dns_status.stdout.find("Running") == -1   

@@ -1,0 +1,67 @@
+---
+#service is off, if it is off, perform kubeadm init 
+  - shell: ps -ef 
+    register: k8cluster
+
+  - name: init k8s cluster and copy message to /tmp/token
+    raw: kubeadm init >> /tmp/token
+    when: k8cluster.stdout.find("kubelet") == -1
+
+# token registration is the command for k8s million node join
+  - shell: ls /tmp
+    register: token_file
+
+  - name: process init message to retrieve command
+    shell: cat /tmp/token |grep "kubeadm join"
+    register: token   #get million node join command
+    when: token_file.stdout.find("token") != -1
+
+# execute the command what kubeadm mention
+  - shell: "{{item}}"
+    with_items:
+      - cp /etc/kubernetes/admin.conf $HOME/
+      - chown $(id -u):$(id -g) $HOME/admin.conf
+      - export KUBECONFIG=$HOME/admin.conf
+
+# verify bashrc includes "export KUBECONFIG=$HOME/admin.conf"
+  - shell: cat ~/.bashrc
+    register: inbashrc
+
+  - name: update shell privilige into bashrc 
+    shell: echo 'export KUBECONFIG=$HOME/admin.conf' >> ~/.bashrc
+    when: inbashrc.stdout.find("export KUBECONFIG=") == -1
+
+# fetch info of kubeadm join from k8master to ansible control node
+  - name: fetch tmp file from k8master to ansible control node /tmp folder
+    fetch: 
+      src: /tmp/token
+      dest: /tmp/token
+      flat: yes
+
+# the kunectl execute needs to refer admin.conf then it is able to pass authotization 
+# within ssh session, /etc/kubernetes/admin.conf is not loaded by default,so we need to specify and execute command
+
+# verify clusteradmin role existing or not 
+  - raw: export KUBECONFIG=~/admin.conf && kubectl get clusterrolebindings >> /tmp/rolebinding 
+
+  - shell: cat /tmp/rolebinding 
+    register: role
+
+  - name: create cluster role binding if it is not existed
+    raw: export KUBECONFIG=~/admin.conf && kubectl create clusterrolebinding default:default:clusteradmin --clusterrole cluster-admin --serviceaccount default:default
+    when: role.stdout.find("clusteradmin") == -1
+
+# load nsx ncp docker image 
+  - shell: docker images 
+    register: docker_image
+
+  - name: load nsx docker image 
+    command: docker load -i "{{ovspkg.docker}}" 
+    when: docker_image.stdout.find("nsx-ncp")
+
+# copy nsx node agent and ncp yml to k8 master
+  - name: update nsx node agent to k8 master
+    template: src=./template/nsx-node-agent-ds.yml dest=/tmp
+
+  - name: update ncp.rc to k8 master
+    template: src=./template/ncp-rc.yml dest=/tmp

@@ -1,9 +1,3 @@
----
-- hosts: all
-  vars_files: 
-    - ../answer.yml
-
-  tasks:
   - name: confiure /etc/host for k8master name resolving 
     command: echo {{k8master.ip}} {{k8master.name}} >> /etc/hosts
   - name: check apt key existing on packages.cloud.google.com
@@ -46,7 +40,7 @@
 # prefix of unarchive folder to do check point
   - name: unarchive the nsx container file 
     unarchive:
-      src: ./packages/nsx-container-2.0.0.0.0.6500154.zip
+      src: "{{ovspkg.zip}}"
       dest: /tmp
     when: file_present.stdout.find("nsx-container") == -1
 
@@ -57,6 +51,7 @@
   - name: install nsx openvswitch packages 
     apt: deb={{item}}
     with_items:
+      - "{{ovspkg.lib}}"
       - "{{ovspkg.common}}"
       - "{{ovspkg.switch}}"
       - "{{ovspkg.dkms}}"
