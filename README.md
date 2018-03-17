@@ -48,12 +48,15 @@ The project is on early stage for demo purpose, to fit various envionment, you m
 
 How to use vato:
 	- if you setup environement properly 
+	
 	- run command under nsx folder to provision 
 		example: ~/vato/nsx$ ansible-playbook -i ../host.yml nsxt_go.yml
+		
         - manual configuration nsx environment
 		. Due the demo environment difference, we leave little configuration for manual provisoing
 		. user needs to create its own vlan logical switch , tier 1 uplink port 
 		. user needs to create its own default route and route distribution 
 		. make sure that vato appliance is able to reach conatiner-vm  
+		
 	- run command under k8s folder to provision 
 		example: ~/vato/k8s$ ansible-playbook -i ../host.yml k8s_go.ym
