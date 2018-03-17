@@ -1,7 +1,0 @@
- This folder places ova for container-vm ova and nsx container package 
- The file what we use for k8s 
-
- docker-temp5.ova - container vm ova 
- nsx-container-2.1.0.0.0.7371408.zip - nsx-t container package for D-Go
-
- you just need copy these files into this folder
