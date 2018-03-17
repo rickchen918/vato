@@ -1,9 +1,9 @@
 ---
 - hosts: 127.0.0.1
   vars_files: 
-    - ./nsxt_answer.yml
+    - ../answer.yml
   roles:
     - { role: app_deploy }
     - { role: nsx_configure }
-    - { role: nsx_k8s }
+    - { role: nsx_k8s, tags: "python" }
 

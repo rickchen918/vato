@@ -1,6 +1,7 @@
 import requests,json,base64,paramiko,pdb,yaml,os
+ 
 # refer var from yaml de./nsxt_answer.yml")
-with open("/root/project/ventu/nsxt_answer.yml") as config:
+with open("../answer.yml") as config:
     var=yaml.load(config)
 
 mgr=var['nsxmgr']['ip']
@@ -96,13 +97,39 @@ def create_ipool(name,dns,start,end,gw,cidr):
     conn=requests.post(url,verify=False,headers=header,data=body)                                                                     
     result=json.loads(conn.text)                                                                                        
     if conn.status_code==201:
-       result=json.loads(conn.text)                                                                                          
-       uuid=result.get('id')                                                                                              
-       return uuid                                                                                                 
+       result=json.loads(conn.text)
+       uuid=result.get('id')
+       name=result.get('display_name')
+       print "the ip pool "+str(name)+" "+str(uuid)+" has been sucessfully created"
+       return uuid 
     else:                                                                                                               
         print "the return code is "+str(conn.status_code)
         quit()
- 
+
+# get ip pool body
+def get_ipool_body(poolid):
+    ep="/api/v1/pools/ip-pools/%s"%poolid
+    url="https://"+str(mgr)+str(ep)
+    conn=requests.get(url,verify=False,headers=header)   
+    if conn.status_code==200:
+       result=json.loads(conn.text)
+       return result
+    else:
+       print "the return code is "+str(conn.status_code)
+       quit()
+
+# update ip pool configuration 
+def put_ipool_body(poolid,body):
+    ep="/api/v1/pools/ip-pools/%s"%poolid
+    url="https://"+str(mgr)+str(ep) 
+    conn=requests.put(url,verify=False,headers=header,data=body)  
+    if conn.status_code==200:
+       result=json.loads(conn.text)            
+       return result
+    else:        
+        print "the return code is "+str(conn.status_code)
+        quit()
+
 # create uplink profile, aka host-switch-profile 
 # name: profile name
 # mtu: uplink mtu size

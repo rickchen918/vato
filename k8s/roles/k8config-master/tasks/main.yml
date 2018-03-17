@@ -1,4 +1,14 @@
 ---
+# make the cgroup driver match between the default docker driver and what kubelet wants to use 
+  - shell: sed -i "s/KUBELET_KUBECONFIG_ARGS=/KUBELET_KUBECONFIG_ARGS=--cgroup-driver=cgroupfs /g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+# trun off linux swap 
+  - shell: "{{item}}"
+    with_items:
+      - sed -i /swap/s/^/#/ /etc/fstab
+      - swapoff -a
+
+
 #service is off, if it is off, perform kubeadm init 
   - shell: ps -ef 
     register: k8cluster

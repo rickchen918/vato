@@ -8,7 +8,8 @@
     --noSSLVerify
     --powerOn
     --datastore={{vc.ds}}
-    --network={{common.net0}}
+    --net:64-0={{k8mgmt.lswname}}
+    --net:65-0={{k8overlay.lswname}}
     --name={{k8master.name}}
     --prop:hostname={{k8master.name}}
     --prop:ip={{k8master.ip}}
@@ -16,7 +17,7 @@
     --prop:gateway={{k8common.gw}}
     --prop:dns={{k8common.dns}}
     {{k8image.template}}   
-    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.cluster}}
+    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.comp_cluster}}
 
 - name: deployment container host1
   command: ovftool
@@ -27,7 +28,8 @@
     --noSSLVerify
     --powerOn
     --datastore={{vc.ds}}
-    --network={{common.net0}}
+    --net:64-0={{k8mgmt.lswname}}
+    --net:65-0={{k8overlay.lswname}}
     --name={{k8node1.name}}
     --prop:hostname={{k8node1.name}}
     --prop:ip={{k8node1.ip}}
@@ -35,7 +37,7 @@
     --prop:gateway={{k8common.gw}}
     --prop:dns={{k8common.dns}}
     {{k8image.template}}
-    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.cluster}}
+    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.comp_cluster}}
 
 - name: deployment container host2
   command: ovftool
@@ -46,7 +48,8 @@
     --noSSLVerify
     --powerOn
     --datastore={{vc.ds}}
-    --network={{common.net0}}
+    --net:64-0={{k8mgmt.lswname}}
+    --net:65-0={{k8overlay.lswname}}
     --name={{k8node2.name}}
     --prop:hostname={{k8node2.name}}
     --prop:ip={{k8node2.ip}}
@@ -54,4 +57,10 @@
     --prop:gateway={{k8common.gw}}
     --prop:dns={{k8common.dns}}
     {{k8image.template}}
-    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.cluster}}
+    vi://{{vc.user}}:{{vc.pass}}@{{vc.server}}/{{vc.dc}}/host/{{vc.comp_cluster}}
+
+- pause:
+    minutes: 1
+
+#- pause: 
+#    prompt: Before vCenter 6.5U2, ovftool hits bug to attach vnic to NSX logical switch, you need rewire vnic into overlay switch manually. Once you done, press enter to continue.

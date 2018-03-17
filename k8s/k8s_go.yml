@@ -3,19 +3,20 @@
   vars_files: 
     - ../answer.yml
   roles:
-    - { role: k8app_deploy }
+    - { role: k8app_deploy, tags: "appdeploy" }
+    - { role: tagging, tags: "python" }
 
 - hosts: k8master
   vars_files:
     - ../answer.yml
   roles:
-    - { role: linuxprep }
+    - { role: linuxprep, tags: "linuxprep" }
 
 - hosts: k8node
   vars_files:
     - ../answer.yml
   roles:
-    - { role: linuxprep }
+    - { role: linuxprep, tags: "linuxprep" }
 
 - hosts: k8master
   vars_files:

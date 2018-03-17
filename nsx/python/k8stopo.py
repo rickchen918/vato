@@ -1,4 +1,13 @@
-import tlr,requests,json,base64,pdb
+import tlr,requests,json,base64,pdb,yaml,os
+print os.getcwd()
+
+# import answer.yml to create overlay logical switch for container vm host 
+with open('../answer.yml') as config:
+    info=yaml.load(config)
+overlaylsw=info['k8overlay']['lswname']
+mgmtlsw=info['k8mgmt']['lswname']
+scope=info['tags']['scope']
+tag=info['tags']['tag']
 
 ### create transport zone ###
 # create overlay transport zone 
@@ -60,8 +69,8 @@ print edgeclusterid
 #lp1sw2=tlr.create_lswport("lsw2p1",vlanlsw2)
 
 # create overlay logical switch 
-k8mgmt=tlr.create_overlaylsw(overlay,"k8mgmt")
-k8overlay=tlr.create_overlaylsw(overlay,"k8OL")
+k8mgmt=tlr.create_overlaylsw(overlay,"%s"%mgmtlsw)
+k8overlay=tlr.create_overlaylsw(overlay,"%s"%overlaylsw)
 
 # create overlay logical switch port 
 k8mgmtport=tlr.create_lswport("to_router",k8mgmt)
@@ -80,3 +89,18 @@ t0_downoverlay=tlr.create_lr0downlink(t0,k8overlayport,"192.168.101.1","24")
 # create ip block for k8s namespace 
 k8block=tlr.create_ipblock("k8ipblock","192.168.102.0/24")
 
+# create nat pool and update tag for k8s
+natpool=tlr.create_ipool("natpool","192.168.0.96","192.168.102.100","192.168.102.199","192.168.102.1","192.168.102.0/24")
+body=tlr.get_ipool_body(natpool)
+matrix=[]
+for x in body:
+    if ("_create_" in x) or ("_last_" in x) or ("_system_" in x) or ("_protection" in x):
+	 matrix.append(x)
+
+for y in matrix:
+	del body[y]
+
+new=json.loads("""{"tags" : [ {"scope" : "ncp/external","tag" : "true"}, {"scope" : "%s","tag" : "%s"} ]}"""%(tlr.scope,tlr.tag))
+body.update(new)
+newbody=json.dumps(body)
+tlr.put_ipool_body(natpool,newbody)

@@ -1,4 +1,13 @@
 ---
+# make the cgroup driver match between the default docker driver and what kubelet wants to use 
+  - shell: sed -i "s/KUBELET_KUBECONFIG_ARGS=/KUBELET_KUBECONFIG_ARGS=--cgroup-driver=cgroupfs /g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+# trun off linux swap 
+  - shell: "{{item}}"
+    with_items:
+      - sed -i /swap/s/^/#/ /etc/fstab
+      - swapoff -a
+
   - name: copy k8s node join info to k8 milion node
     copy:
       src: /tmp/token
