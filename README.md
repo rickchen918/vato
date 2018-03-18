@@ -7,6 +7,7 @@ The project includes 2 main parts
 		. Deploy nsx ova
 		. Register and build nsx controller cluster 
 		. Register and build nsx edge node and edge cluster 
+		
 	- Configure basic nsx configuration by python script (under nsx folder)
 		. Create transport zone for vlan
 		. Create transport zone for overlay with tag (required for k8s integration) 
