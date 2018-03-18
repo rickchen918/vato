@@ -1,4 +1,4 @@
-# vato2 project 
+# vato project 
 The project is to created to simpify provisioning upon nsx-t and k8s integation
 The project includes 2 main parts 
 
