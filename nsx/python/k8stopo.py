@@ -90,7 +90,7 @@ t0_downoverlay=tlr.create_lr0downlink(t0,k8overlayport,"192.168.101.1","24")
 k8block=tlr.create_ipblock("k8ipblock","192.168.102.0/24")
 
 # create nat pool and update tag for k8s
-natpool=tlr.create_ipool("natpool","192.168.0.96","192.168.102.100","192.168.102.199","192.168.102.1","192.168.102.0/24")
+natpool=tlr.create_ipool("natpool","192.168.0.96","192.168.103.100","192.168.103.199","192.168.103.1","192.168.103.0/24")
 body=tlr.get_ipool_body(natpool)
 matrix=[]
 for x in body:

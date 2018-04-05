@@ -1,7 +1,0 @@
-# This folder places ova for nsx virtial platform.
-# The file what we use in D-Go is 
-#nsx-controller-2.1.0.0.0.7395493.ova  
-#nsx-edge-2.1.0.0.0.7395502.ova  
-#nsx-unified-appliance-2.1.0.0.0.7395503.ova
-
-# you just need copy these files into this folder

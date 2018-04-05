@@ -112,6 +112,11 @@ data:
     nsx_api_managers = {{k8s.nsx_mgr}}
     nsx_api_user = {{k8s.nsx_user}}
     nsx_api_password = {{k8s.nsx_pass}}
+    use_native_loadbalancer = True
+    pool_algorithm = 'ROUND_ROBIN'
+    service_size = 'SMALL'
+    virtual_servers_per_lbs = 10
+
 
     # If true, the NSX Manager server certificate is not verified. If false the CA
     # bundle specified via "ca_file" will be used or if unsest the default system

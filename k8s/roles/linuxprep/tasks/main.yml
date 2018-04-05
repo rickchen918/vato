@@ -1,6 +1,4 @@
 ---
-  - name: disable apt-daily timer 
-    shell: systemctl stop apt-daily.timer
   - name: check apt key existing on packages.cloud.google.com
     command: apt-key list 
     register: key_google
@@ -16,6 +14,17 @@
   - name: update apt package list 
     apt:
       update_cache: yes
+  - name: check apt.systemd.daily
+    shell: ps -ef |grep apt
+    register: systemd
+  - name: stop systemd daily service
+    command: "{{item}}"
+    with_items:
+      - killall -9 apt
+      - rm /var/lib/dpkg/lock
+      - rm /var/lib/apt/lists/lock
+      - rm /var/cache/apt/archives/lock
+    when: systemd.stdout.find("systemd.daily") == 0
   - name: install k8s related packages 
     apt:  
       name:

@@ -47,7 +47,7 @@ for x in matrix:
     url="https://"+str(mgr)+str(ep)
     conn=requests.get(url,verify=False,headers=header)
     name=json.loads(conn.text).get('display_name')
-    vifname=name.split('/')[0]
+    vifname=name.split('_')[0]
     nic=json.loads(conn.text)['attachment']['attachment_type']
     vifid=json.loads(conn.text)['attachment']['id']
     revision=json.loads(conn.text).get('_revision')
