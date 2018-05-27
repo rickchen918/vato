@@ -1,0 +1,47 @@
+---
+- name: remove existing hostkey storing 
+  file: path=~/.ssh/known_hosts state=absent
+
+- pause: 
+    minutes: 2
+
+- shell: ping -c 3 "{{item}}"
+  with_items:
+    - "{{nsxctr1.ip}}"
+
+- name: get nsx manager thumbprint 
+  raw: get certificate api thumbprint 
+  register: mgr_key
+  delegate_to: "{{nsxmgr.ip}}"
+
+- name: get controller to join nsx manager 
+  raw: join management-plane {{nsxmgr.ip}} username {{common.user}} password {{common.password}} thumbprint {{mgr_key.stdout_lines[0]}}
+  delegate_to: "{{item}}"
+  with_items:
+    - "{{nsxctr1.ip}}"
+
+- name: set controller share secret
+  raw: set control-cluster security-model shared-secret secret {{common.secret}}
+  delegate_to: "{{item}}"
+  with_items:
+    - "{{nsxctr1.ip}}"
+
+- name: initial controller cluster on controller 1
+  raw: initialize control-cluster
+  delegate_to: "{{nsxctr1.ip}}"
+
+- name: verify cluster service 
+  raw: get control-cluster status verbose
+  register: cluster_status
+  delegate_to: "{{nsxctr1.ip}}"
+
+- name: activate control cluster on controller 1
+  raw: activate control-cluster
+  delegate_to: "{{nsxctr1.ip}}"
+
+- name: get edge to join nsx manager     
+  raw: join management-plane {{nsxmgr.ip}} username {{common.user}} password {{common.password}} thumbprint {{mgr_key.stdout_lines[0]}}
+  delegate_to: "{{item}}"
+  with_items:
+    - "{{nsxedge1.ip}}"
+    - "{{nsxedge2.ip}}"
